@@ -47,7 +47,7 @@ const crearEmpresa = async (req, res = response) => {
     //obtener pais
 
     try {
-        const api = url_configuracion + '/api/pais/' + pais;
+        const api = url_configuracion + '/pais/' + pais;
         const _pais = await enviarConsulta(api, 'GET', '', {});
 
         if (!_pais.ok) {
