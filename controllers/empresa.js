@@ -3,6 +3,7 @@ const fetch = require('node-fetch');
 const { enviarConsulta } = require('../helpers/consultarApi')
 const Empresa = require('../models/empresa');
 const { mongo } = require('mongoose');
+const { ObjectId } = require('mongodb');
 
 
 const url_seguridad = process.env.URL_SEGURIDAD;
@@ -27,25 +28,46 @@ const getEmpresa = async (req, res = response) => {
 }
 
 const propietarioEmpresas = async (req, res = response) => {
-  const propietario = req.params.propietario;
+    const propietario = req.params.propietario;
+   
+    try {
+       
+        const empresa = await Empresa.aggregate([{
+            $match: {
+                propietario: new ObjectId(propietario)
+            }
+        }, {
+            $lookup: {
+                from: 'usuarios',
+                localField: 'propietario',
+                foreignField: '_id',
+                as: 'propietario'
+            }
+        }]);
 
-    const empresa = await Empresa.find({propietario:propietario});
 
-    if (!empresa) {
+        if (!empresa) {
+            return res.json({
+                ok: true,
+                msg: 'Empresa no existe'
+            })
+        }
         return res.json({
             ok: true,
-            msg: 'Emppresa no existe'
+            empresa
         })
+    } catch (error) {
+        console.log('Error al listar empresas propietario' + error)
+        return res.status(500).json({
+            ok: false,
+            msg: 'Por favor hable con el administrador ' + error
+        });
     }
-    return res.json({
-        ok: true,
-        empresa
-    })
 }
-const crearEmpresa = async (req, res = response) => {
-    const { pais, nombre } = req.body;
-    //obtener pais
 
+const crearEmpresa = async (req, res = response) => {
+    const pais = req.body.pais;
+    const nombre = req.body.nombre
     try {
         const api = url_configuracion + '/pais/' + pais;
         const _pais = await enviarConsulta(api, 'GET', '', {});
@@ -59,6 +81,7 @@ const crearEmpresa = async (req, res = response) => {
         req.body.monedaDefault = _pais.pais.monedas[0]._id;
         req.body.propietario = req.user_id;
         req.body.usuarioRegistro = req.user_id;
+        req.body.parametros = {}
 
         //datos de la agencia
         const idAgencia = mongo.ObjectId();
@@ -69,12 +92,12 @@ const crearEmpresa = async (req, res = response) => {
         //crear la agencia y la bodega default
         const consecutivoAgencia = ('000' + 1).slice(-3);
         req.body.agencias = [{
-            nombre:'Agencia default',
-            numeroAgencia:consecutivoAgencia,
-            usuarioRegistro :req.user_id,
-            monedaFacturacion :_pais.pais.monedas[0]._id,
-            _id :idAgencia,
-            consecutivos :{
+            nombre: 'Agencia default',
+            numeroAgencia: consecutivoAgencia,
+            usuarioRegistro: req.user_id,
+            monedaFacturacion: _pais.pais.monedas[0]._id,
+            _id: idAgencia,
+            consecutivos: {
                 facturaElectronica: 0,
                 notaCreditoElectronica: 0,
                 notaDebitoElectronica: 0,
@@ -89,9 +112,9 @@ const crearEmpresa = async (req, res = response) => {
                 asientos: 0,
                 movimientoInventario: 0,
             },
-            bodegaDefault :idBodega,
+            bodegaDefault: idBodega,
             //genera id de bodega
-            bodegas :[{
+            bodegas: [{
                 _id: idBodega,
                 nombre: "Bodega default",
                 usuarioRegistro: req.user_id
@@ -157,13 +180,30 @@ const eliminarEmpresa = async (req, res = response) => {
     }
 }
 
+const incrementarCodigoProducto = async (req, res = response) => {
+const id = req.empresa._id;
+console.log('empresa',req.empresa,id)
+const consecutivo = req.params.consecutivo;
+    try {
+        await Empresa.findByIdAndUpdate(id, { 'parametros.consecutivoProducto': consecutivo });
+        res.json({
+            ok: true,
+            msg: 'El consecutivo de producto fue actualizado'
+        })
+    } catch (error) {
+        console.log('Error al actualizar el consecutivo de producto ' + error)
+        res.status(500).json({
+            ok: false,
+            msg: 'Por favor hable con el administrador ' + error
+        });
+    }
+}
 
 module.exports = {
     getEmpresa,
     crearEmpresa,
     actualizarEmpresa,
     eliminarEmpresa,
-    propietarioEmpresas
-   
-
+    propietarioEmpresas,
+    incrementarCodigoProducto
 }
