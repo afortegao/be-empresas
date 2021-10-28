@@ -26,5 +26,5 @@ app.use(require('./routes/index'));
 
 // escuchar peticiones
 app.listen(process.env.PORT_EMPRESAS, () => {
-    console.log('Servidor EMPRESAS en puerto ' + process.env.PORT_EMPRESAS);
+    console.log('Servidor en puerto ' + process.env.PORT_EMPRESAS);
 });

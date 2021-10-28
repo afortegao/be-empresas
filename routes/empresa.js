@@ -7,18 +7,16 @@ const { Router, request } = require('express');
 const { check } = require('express-validator');
 const { validarCampos } = require('../middlewares/validar-campos');
 const { getEmpresa, crearEmpresa, actualizarEmpresa,
-    eliminarEmpresa,incrementarCodigoProducto,
+    eliminarEmpresa,
     propietarioEmpresas, } = require('../controllers/empresa');
 const { isRequired } = require('../helpers/isRequired');
 const { isMongoID } = require('../helpers/isMongoID');
 const { isNumero } = require('../helpers/isNumero');
 const { validarJWT } = require('../middlewares/validar-jwt');
-const { validarEmpresa } = require('../middlewares/validar-empresa');
 
 const router = Router();
 //para validar el token en todas las rutas,
 router.use(validarJWT);
-
 
 //obtener empresa
 router.get('/', [
@@ -36,9 +34,6 @@ router.post('/', [
     validarCampos,
 ], crearEmpresa);
 
-
-//para validar el token en todas las rutas,
-router.use(validarEmpresa);
 //actualizar empresa
 router.put('/:id', [
     check('nombre', 'El nombre es obligatorio').not().isEmpty().isLength({ max: 80 })
@@ -86,12 +81,6 @@ router.put('/:id', [
 //eliminar empresa
 router.delete('/:id', [
 ], eliminarEmpresa);
-
-//incrementarCodigoProducto
-router.put('/codigoProducto/:consecutivo', [
-], incrementarCodigoProducto);
-
-
 
 
 module.exports = router;
