@@ -22,6 +22,11 @@ app.use(express.json());
 
 //rutas
 app.use(require('./routes/index'));
+// app.use('/api/empresa', require('./routes/empresa'));
+// app.use('/api/agencia', require('./routes/agencia'));
+// app.use('/api/consecutivo', require('./routes/consecutivo'));
+// app.use('/api/contacto', require('./routes/contacto'));
+// app.use('/api/facturaElectronica', require('./routes/facturaElectronica'));
 
 
 // escuchar peticiones

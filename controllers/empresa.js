@@ -9,7 +9,7 @@ const url_seguridad = process.env.URL_SEGURIDAD;
 const url_configuracion = process.env.URL_CONFIGURACION;
 
 const getEmpresa = async (req, res = response) => {
-
+    console.log('llego getEmpresas ')
     const _id = req.header('x-empresa');
 
     const empresa = await Empresa.findById(_id);
@@ -28,9 +28,9 @@ const getEmpresa = async (req, res = response) => {
 
 const propietarioEmpresas = async (req, res = response) => {
   const propietario = req.params.propietario;
-
+  console.log('llego a propietarioEmpresas ',propietario)
     const empresa = await Empresa.find({propietario:propietario});
-
+  
     if (!empresa) {
         return res.json({
             ok: true,
